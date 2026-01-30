@@ -1,9 +1,11 @@
-var builder = WebApplication.CreateBuilder(args);
+using ManejoDePresupuestos.Servicios;
 
-var conectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
+
+builder.Services.AddTransient<IRepositorioTipoCuenta, RepositorioTipoCuenta>();
 
 var app = builder.Build();
 
