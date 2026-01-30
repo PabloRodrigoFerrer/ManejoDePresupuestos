@@ -480,3 +480,6 @@ $RECYCLE.BIN/
 
 # Vim temporary swap files
 *.swp
+/ManejoDePresupuestos.slnx
+/ManejoDePresupuestos/appsettings.json
+/ManejoDePresupuestos/appsettings.Development.json
