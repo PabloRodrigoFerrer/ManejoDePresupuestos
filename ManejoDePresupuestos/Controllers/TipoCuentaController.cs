@@ -27,8 +27,16 @@ namespace ManejoDePresupuestos.Controllers
                 return View(tipoCuenta);
 
             tipoCuenta.UsuarioId = 1; //Temporal hasta tener implementado el sistema de usuarios
-            await _repositorioTipoCuenta.Create(tipoCuenta);
 
+            bool existe = await _repositorioTipoCuenta.Existe(tipoCuenta.Nombre, tipoCuenta.UsuarioId);
+
+            if (existe)
+            {
+                ModelState.AddModelError(nameof(tipoCuenta.Nombre), $"El nombre {tipoCuenta.Nombre} ya existe.");
+                return View(tipoCuenta);
+            }
+
+            await _repositorioTipoCuenta.Create(tipoCuenta);
             return View();
         }
     }
