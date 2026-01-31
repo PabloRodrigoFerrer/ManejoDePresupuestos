@@ -15,6 +15,14 @@ namespace ManejoDePresupuestos.Controllers
             _repositorioTipoCuenta = repositorioTipoCuenta;
         }
 
+        public async Task<IActionResult> Index()
+        {
+            var usuarioId = 1;
+            var listaCuentas = await _repositorioTipoCuenta.ObtenerCuentasPorUsuario(usuarioId);
+
+            return View(listaCuentas);
+        }
+
         public IActionResult Agregar()
         {
             return View();
@@ -27,7 +35,6 @@ namespace ManejoDePresupuestos.Controllers
                 return View(tipoCuenta);
 
             tipoCuenta.UsuarioId = 1; //Temporal hasta tener implementado el sistema de usuarios
-
             bool existe = await _repositorioTipoCuenta.Existe(tipoCuenta.Nombre, tipoCuenta.UsuarioId);
 
             if (existe)
@@ -37,7 +44,22 @@ namespace ManejoDePresupuestos.Controllers
             }
 
             await _repositorioTipoCuenta.Create(tipoCuenta);
-            return View();
+            return RedirectToAction("Index");
         }
+
+        [HttpGet]
+        public async Task<IActionResult> VerificarExisteTipoCuenta(string nombre)
+        {
+            int id = 1;
+            var existe = await _repositorioTipoCuenta.Existe(nombre, id);
+            
+            if (existe)
+                return Json($"El nombre {nombre} de esa cuenta ya existe");
+            
+            return Json(true);
+        }
+
+        
+
     }
 }

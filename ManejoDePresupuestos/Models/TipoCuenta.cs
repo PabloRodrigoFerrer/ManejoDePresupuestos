@@ -1,5 +1,6 @@
 ﻿using ManejoDePresupuestos.Validaciones;
 using Microsoft.AspNetCore.Antiforgery;
+using Microsoft.AspNetCore.Mvc;
 using System.ComponentModel.DataAnnotations;
 
 namespace ManejoDePresupuestos.Models
@@ -10,6 +11,7 @@ namespace ManejoDePresupuestos.Models
 
         [Required(ErrorMessage = "El {0} es obligatorio")]
         [PrimeraLetraMayuscula]
+        [Remote(action: "VerificarExisteTipoCuenta", controller:"TipoCuenta")]
         public string Nombre { get; set; } = string.Empty;
 
         public int UsuarioId { get; set; }
