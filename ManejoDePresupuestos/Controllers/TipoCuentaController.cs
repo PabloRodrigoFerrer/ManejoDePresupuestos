@@ -68,6 +68,8 @@ namespace ManejoDePresupuestos.Controllers
         [HttpPost]
         public async Task<IActionResult> Editar(TipoCuenta tipoCuenta)
         {
+            if (!ModelState.IsValid)
+                return View(tipoCuenta);
             await _repositorioTipoCuenta.Actualizar(tipoCuenta);
             return RedirectToAction("index");
         }
