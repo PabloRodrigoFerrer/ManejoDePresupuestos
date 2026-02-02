@@ -18,15 +18,16 @@
             <th>Nombre</th>
         </tr>
     </thead>
-    <tbody>
+    <tbody id="reordenable">
         @foreach (var cuenta in Model)
         {
             <tr>
                 <td>
+                    <input hidden="hidden" value="@cuenta.Id" class="ids"/>
                     <a asp-action="Editar" asp-route-id="@cuenta.Id" class="btn btn-primary">Editar</a>
-                    <a class="btn btn-danger">Borrar</a>
+                    <a asp-action="Borrar" asp-route-id="@cuenta.Id" class="btn btn-danger">Borrar</a>
                 </td>
-                <td> 
+                <td>
                     @cuenta.Nombre
                 </td>
             </tr>
@@ -35,3 +36,47 @@
 
 
 </table>
+
+@section Scripts {
+
+    <script>
+
+            const urlOrdenar = '@Url.Action("Ordenar")';
+
+            $(function(){
+                $("#reordenable").sortable({
+                    stop: async function(e, ui){
+                        await actualizarOrdenes();
+                    }
+                });
+
+                //funcion el evento stop
+                async function actualizarOrdenes(){
+                    var ids= obtenerIds();
+                    await fetchActualizarOrdenes(ids);
+                }
+
+                //funcion para obtener array con los ids en el nuevo orden
+                function obtenerIds(){
+                    const ids = $(".ids").map(function(){
+                        return $(this).val();
+                    }).get();
+                    return ids;
+                }
+
+               // funcion para hacer el fetch al endpoint ordenar
+                async function fetchActualizarOrdenes(ids){
+
+                    const data = JSON.stringify(ids);
+
+                    await fetch(urlOrdenar, {
+                    method: 'POST',
+                    body: data,
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                    });
+                }
+        });
+    </script>
+}
