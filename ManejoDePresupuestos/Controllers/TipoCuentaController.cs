@@ -1,8 +1,6 @@
-﻿using Dapper;
-using ManejoDePresupuestos.Models;
+﻿using ManejoDePresupuestos.Models;
 using ManejoDePresupuestos.Servicios;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Data.SqlClient;
 
 namespace ManejoDePresupuestos.Controllers
 {
@@ -12,7 +10,7 @@ namespace ManejoDePresupuestos.Controllers
         private readonly IRepositorioUsuario _repositorioUsuario;
 
         public TipoCuentaController(
-            IRepositorioTipoCuenta repositorioTipoCuenta, 
+            IRepositorioTipoCuenta repositorioTipoCuenta,
             IRepositorioUsuario repositorioUsuario
             )
         {
@@ -74,6 +72,31 @@ namespace ManejoDePresupuestos.Controllers
             return RedirectToAction("index");
         }
 
+        [HttpGet]
+        public async Task<IActionResult> Borrar(int id)
+        {
+            int usuarioId = await _repositorioUsuario.ObtenerUsuarioId();
+            var tipoCuenta = await _repositorioTipoCuenta.ObtenerPorId(id, usuarioId);
+
+            if (tipoCuenta is null)
+                return RedirectToAction("NoEncontrado", "Home");
+
+            return View(tipoCuenta);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> BorrarCuenta(int id)
+        {
+            int usuarioId = await _repositorioUsuario.ObtenerUsuarioId();
+            var tipoCuenta = await _repositorioTipoCuenta.ObtenerPorId(id, usuarioId);
+
+            if (tipoCuenta is null)
+                return RedirectToAction("NoEncontrado", "Home");
+
+            await _repositorioTipoCuenta.Delete(id);
+
+            return RedirectToAction("index");
+        }
 
         [HttpGet]
         public async Task<IActionResult> VerificarExisteTipoCuenta(string nombre)
@@ -83,11 +106,34 @@ namespace ManejoDePresupuestos.Controllers
 
             if (existe)
                 return Json($"El nombre {nombre} de esa cuenta ya existe");
-            
+
             return Json(true);
         }
 
-        
+        [HttpPost]
+        public async Task<IActionResult> Ordenar([FromBody] int[] ids)
+        {
+            int usuarioId = await _repositorioUsuario.ObtenerUsuarioId();
+            var tiposCuentas = await _repositorioTipoCuenta.ObtenerCuentasPorUsuario(usuarioId);
 
+            int[] idsCuentasUsuario = tiposCuentas.Select(x => x.Id).ToArray();
+            //comparación ids cuentas con ids del usuario
+            var idsNoPertenecenAlUsuario = ids.Except(idsCuentasUsuario).ToArray();
+
+            if(idsNoPertenecenAlUsuario.Length > 0)
+                return Forbid();
+
+
+            var tiposCuentasOrdenados =
+                ids.Select((valor, indice) => new TipoCuenta
+                {
+                    Id = valor,
+                    Orden = indice + 1,
+                }).ToArray();
+
+            await _repositorioTipoCuenta.Ordenar(tiposCuentasOrdenados);
+
+            return Ok();
+        }
     }
 }

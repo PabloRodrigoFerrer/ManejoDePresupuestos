@@ -16,6 +16,5 @@ namespace ManejoDePresupuestos.Validaciones
 
             return ValidationResult.Success;
         }
-
     }
 }
