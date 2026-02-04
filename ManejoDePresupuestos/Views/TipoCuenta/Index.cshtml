@@ -8,9 +8,7 @@
 <h5 class="mb-5">
     El tipo de cuenta se refiere a que podemos crear cuentas para agrupar nuestros gastos.
 </h5>
-
 <a asp-action="Agregar" class="btn btn-primary">Agregar nuevo</a>
-
 <table class="table">
     <thead>
         <tr>
@@ -33,14 +31,11 @@
             </tr>
         }
     </tbody>
-
-
 </table>
 
 @section Scripts {
 
     <script>
-
             const urlOrdenar = '@Url.Action("Ordenar")';
 
             $(function(){

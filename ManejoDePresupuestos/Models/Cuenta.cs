@@ -15,10 +15,13 @@ namespace ManejoDePresupuestos.Models
 
         [DisplayName("Tipo cuenta")]
         public int TipoCuentaId { get; set; }
+        public string TipoCuenta { get; set; } = string.Empty;
         public decimal Balance { get; set; }
 
         [StringLength(1000, ErrorMessage = "El {0} no puede contener más de 1000 caracteres.")]
         public string Descripcion { get; set; } = string.Empty;
-    
+
+ 
+
     }
 }

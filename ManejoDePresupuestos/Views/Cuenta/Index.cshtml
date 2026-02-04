@@ -1,0 +1,63 @@
+﻿@* modelo con viewmodel  *@
+@model IEnumerable<IndexCuentaViewModel>
+
+@{
+    ViewData["Title"] = "Cuentas";
+}
+
+<h1>@ViewData["Title"]</h1>
+
+<a asp-action="Agregar" class="btn btn-primary">Agregar nuevo</a>
+
+<section class="cabecera-totales d-flex justify-content-between mt-5 mb-3">
+    <div class="mb-3 text-center">
+        <h2>Activos</h2>
+        <h3 class="activo">
+            @Model.Where(c => c.Balance > 0).Sum(c => c.Balance)
+        </h3>
+    </div>
+
+    <div class="mb-3 text-center">
+        <h2>Pasivos</h2>
+        <h3 class="pasivo">
+            @Model.Where(c => c.Balance < 0).Sum(c => c.Balance)
+        </h3>
+    </div>
+
+    <div class="mb-3 text-center">
+        <h2>Total</h2>
+        <h3>
+            @Model.Sum(c => c.Balance)
+        </h3>
+    </div>
+</section>
+
+<div class="accordion" id="accordionExample">
+    @foreach(var cuenta in Model)
+    {        
+        <div class="accordion-item">
+            <h2 class="accordion-header">
+                @{
+                    var id = cuenta.TipoCuenta.Replace(" ", "");
+                    var dataBsTarget = "#" + id;
+                }
+                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="@dataBsTarget" aria-expanded="true" aria-controls="collapseOne">
+                    <div class="d-flex justify-content-between align-items-center w-100 me-2">
+                        <h4>@cuenta.TipoCuenta</h4>
+                        <h5>@cuenta.Balance</h5>
+                    </div>
+                </button>
+            </h2>
+            @foreach(var item in cuenta.Cuentas)
+            {
+                <div id="@id" class="accordion-collapse collapse show">
+                    <div class="accordion-body d-flex justify-content-between">
+                        <p>@item.Nombre</p>
+                        <h4 class="@cuenta.AsignarClaseBalance(item.Balance)">@item.Balance</h4>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
