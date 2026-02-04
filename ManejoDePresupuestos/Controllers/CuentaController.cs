@@ -1,4 +1,5 @@
-﻿using ManejoDePresupuestos.Models;
+﻿using AutoMapper;
+using ManejoDePresupuestos.Models;
 using ManejoDePresupuestos.Servicios;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -10,17 +11,19 @@ namespace ManejoDePresupuestos.Controllers
         private readonly IRepositorioTipoCuenta _respositorioTipoCuenta;
         private readonly IRepositorioUsuario _repositorioUsuario;
         private readonly IRepositorioCuenta _repositorioCuenta;
+        private readonly IMapper _mapper;
 
         public CuentaController(
             IRepositorioTipoCuenta repositorioTipoCuenta,
             IRepositorioUsuario repositorioUsuario,
-            IRepositorioCuenta repositorioCuenta)
+            IRepositorioCuenta repositorioCuenta,
+            IMapper mapper)
         {
             _respositorioTipoCuenta = repositorioTipoCuenta;
             _repositorioUsuario = repositorioUsuario;
             _repositorioCuenta = repositorioCuenta;
+            _mapper = mapper;
         }
-
 
         public async Task<IActionResult> Index()
         {
@@ -43,15 +46,15 @@ namespace ManejoDePresupuestos.Controllers
             var usuarioId = await _repositorioUsuario.ObtenerUsuarioId();
             var tipoCuentas = await _respositorioTipoCuenta.ObtenerCuentasPorUsuario(usuarioId);
 
-            var model = new CuentaViewModel();
+            var model = new CuentaAgregarViewModel();
             model.TiposCuentas = tipoCuentas.Select(c =>
                 new SelectListItem(c.Nombre, c.Id.ToString()));
-        
+
             return View(model);
         }
 
         [HttpPost]
-        public async Task<IActionResult> Agregar(CuentaViewModel cuenta)
+        public async Task<IActionResult> Agregar(CuentaAgregarViewModel cuenta)
         {
             //validamos que tipo cuenta pertenezca al usuario
             int usuarioId = await _repositorioUsuario.ObtenerUsuarioId();
@@ -59,7 +62,7 @@ namespace ManejoDePresupuestos.Controllers
 
             if (tipoCuenta is null)
                 return RedirectToAction("NoEncontrado", "Home");
-            
+
             if (!ModelState.IsValid)
             {
                 return View(cuenta);
@@ -67,6 +70,39 @@ namespace ManejoDePresupuestos.Controllers
 
             await _repositorioCuenta.Create(cuenta);
             return RedirectToAction("Index");
+        }
+
+
+        public async Task<IActionResult> Editar(int id)
+        { 
+            int usuarioId = await _repositorioUsuario.ObtenerUsuarioId();
+            var cuenta = await _repositorioCuenta.ObtenerCuentaPorId(id, usuarioId);
+
+            if (cuenta is null)
+                return RedirectToAction("NoEncontrado", "Home");
+
+            var viewModel = _mapper.Map<CuentaAgregarViewModel>(cuenta);
+
+            var tipoCuentas = await _respositorioTipoCuenta.ObtenerCuentasPorUsuario(usuarioId);
+            viewModel.TiposCuentas = tipoCuentas.Select(tc =>
+                    new SelectListItem(tc.Nombre, tc.Id.ToString()));
+
+            return View(viewModel);
+
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Editar(Cuenta cuentaEditar)
+        {
+            int usuarioId = await _repositorioUsuario.ObtenerUsuarioId();
+            var cuenta = await _repositorioCuenta.ObtenerCuentaPorId(cuentaEditar.Id, usuarioId);
+
+            if (cuenta is null)
+                return RedirectToAction("NoEncontrado", "Home");
+
+            await _repositorioCuenta.Editar(cuentaEditar);
+            return RedirectToAction("Index");
+
         }
     }
 }

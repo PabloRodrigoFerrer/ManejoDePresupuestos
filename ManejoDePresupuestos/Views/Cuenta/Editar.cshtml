@@ -1,12 +1,13 @@
 ﻿@model CuentaAgregarViewModel
-
 @{
-    ViewData["Title"] = "Agregar Cuenta";
+    ViewBag.Title = "Editar Cuenta";
 }
 
-<h2>Agregar cuenta</h2>
-<form asp-action="Agregar">
+<h2>Editar cuenta: @Model.Nombre</h2>
+<form asp-action="Editar">
     <div asp-validation-summary="ModelOnly"></div>
+    <input type="number" asp-for="Id" hidden="hidden" disabled="disabled"/>
+
     <div class="mb-3">
         <label asp-for="Nombre" class="form-label"></label>
         <input asp-for="Nombre" class="form-control" />

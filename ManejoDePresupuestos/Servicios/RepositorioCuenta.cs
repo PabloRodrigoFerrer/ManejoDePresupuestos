@@ -7,6 +7,8 @@ namespace ManejoDePresupuestos.Servicios
     public interface IRepositorioCuenta
     {
         Task Create(Cuenta cuenta);
+        Task Editar(Cuenta cuentaEditar);
+        Task<Cuenta?> ObtenerCuentaPorId(int id, int usuarioId);
         Task<IEnumerable<Cuenta>> ObtenerCuentas(int usuarioId);
     }
 
@@ -33,7 +35,7 @@ namespace ManejoDePresupuestos.Servicios
         //crear query para listar cuentas con su tipo cuenta y agregar el tipo cuenta como campo string. Ademas crear viewmodel para listar las cuentas con su tc
         public async Task<IEnumerable<Cuenta>> ObtenerCuentas(int usuarioId)
         {
-            string query = @"select Cuentas.Nombre, Balance, tc.Nombre as TipoCuenta
+            string query = @"select Cuentas.Id, Cuentas.Nombre, Balance, tc.Nombre as TipoCuenta
                               from Cuentas
                               inner join TiposCuentas as tc 
                               on tc.Id = TipoCuentaId
@@ -43,6 +45,31 @@ namespace ManejoDePresupuestos.Servicios
             var result = await connection.QueryAsync<Cuenta>(query, new { usuarioId });
             return result;
         }
+
+        public async Task<Cuenta?> ObtenerCuentaPorId(int id, int usuarioId)
+        {
+            string query = @"select Cuentas.Id, Cuentas.Nombre, Balance, Descripcion, TipoCuentaId
+                              from Cuentas
+                              inner join TiposCuentas as tc 
+                              on tc.Id = TipoCuentaId
+                              where tc.UsuarioId = @usuarioId and Cuentas.Id = @id";
+
+            using var connection = new SqlConnection(_connectionString);
+            return await connection.QueryFirstOrDefaultAsync<Cuenta>(query, new { id, usuarioId });
+        }
     
+        public async Task Editar(Cuenta cuentaEditar)
+        {
+            string query = @"update Cuentas
+                              set Nombre = @nombre,
+                              TipoCuentaId = @tipoCuentaId,
+                              Balance = @balance,
+                              Descripcion = @descripcion
+                              where Id = @Id ";
+        
+            using var connection = new SqlConnection(_connectionString);
+            await connection.ExecuteAsync(query, cuentaEditar);
+
+        }
     }
 }

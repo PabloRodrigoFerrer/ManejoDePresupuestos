@@ -1,4 +1,6 @@
+using ManejoDePresupuestos.Models;
 using ManejoDePresupuestos.Servicios;
+using Microsoft.Extensions.DependencyInjection;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -8,6 +10,11 @@ builder.Services.AddControllersWithViews();
 builder.Services.AddTransient<IRepositorioTipoCuenta, RepositorioTipoCuenta>();
 builder.Services.AddTransient<IRepositorioUsuario, RepositorioUsuario>();
 builder.Services.AddTransient<IRepositorioCuenta, RepositorioCuenta>();
+
+builder.Services.AddAutoMapper(cfg =>
+{
+    cfg.CreateMap<Cuenta, CuentaAgregarViewModel>();
+});
 
 var app = builder.Build();
 

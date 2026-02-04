@@ -2,7 +2,7 @@
 
 namespace ManejoDePresupuestos.Models
 {
-    public class CuentaViewModel : Cuenta
+    public class CuentaAgregarViewModel : Cuenta
     {
         public IEnumerable<SelectListItem> TiposCuentas { get; set; } = [];
     }

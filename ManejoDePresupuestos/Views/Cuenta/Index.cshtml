@@ -52,7 +52,11 @@
             {
                 <div id="@id" class="accordion-collapse collapse show">
                     <div class="accordion-body d-flex justify-content-between">
-                        <p>@item.Nombre</p>
+                        <p>@item.Nombre
+                            <a asp-action="Editar" asp-route-id="@item.Id" class="text-primary"><i class="bi bi-pencil"></i></a>
+                            <a asp-action="Borrar" asp-route-id="@item.Id" class="text-danger"><i class="bi bi-trash"></i></a>
+                        </p>
+                        
                         <h4 class="@cuenta.AsignarClaseBalance(item.Balance)">@item.Balance</h4>
                     </div>
                 </div>
