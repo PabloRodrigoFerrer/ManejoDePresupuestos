@@ -88,7 +88,6 @@ namespace ManejoDePresupuestos.Controllers
                     new SelectListItem(tc.Nombre, tc.Id.ToString()));
 
             return View(viewModel);
-
         }
 
         [HttpPost]
@@ -104,5 +103,32 @@ namespace ManejoDePresupuestos.Controllers
             return RedirectToAction("Index");
 
         }
+
+        [HttpGet]
+        public async Task<IActionResult> Borrar(int id)
+        {
+            int usuarioId = await _repositorioUsuario.ObtenerUsuarioId();
+            var cuenta = await _repositorioCuenta.ObtenerCuentaPorId(id, usuarioId);
+
+            if (cuenta is null || cuenta.Id != id)
+                return RedirectToAction("NoEncontrado", "Home");
+
+            return View(cuenta);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> BorrarCuenta(int id) 
+        {
+            int usuarioId = await _repositorioUsuario.ObtenerUsuarioId();
+            var cuenta = await _repositorioCuenta.ObtenerCuentaPorId(id, usuarioId);
+
+            if (cuenta is null || cuenta.Id != id)
+                return RedirectToAction("NoEncontrado", "Home");
+
+            await _repositorioCuenta.Borrar(id);
+            return RedirectToAction("Index");
+        }
+
+       
     }
 }
