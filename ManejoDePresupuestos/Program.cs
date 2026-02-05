@@ -11,6 +11,7 @@ builder.Services.AddTransient<IRepositorioTipoCuenta, RepositorioTipoCuenta>();
 builder.Services.AddTransient<IRepositorioUsuario, RepositorioUsuario>();
 builder.Services.AddTransient<IRepositorioCuenta, RepositorioCuenta>();
 builder.Services.AddTransient<IRepositorioCategoria, RepositorioCategoria>();
+builder.Services.AddTransient<IRepositorioTransaccion, RepositorioTransaccion>();
 
 builder.Services.AddAutoMapper(cfg =>
 {
