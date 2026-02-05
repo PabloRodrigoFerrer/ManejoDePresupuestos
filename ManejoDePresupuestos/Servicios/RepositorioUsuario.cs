@@ -5,13 +5,9 @@
     {
         Task<int> ObtenerUsuarioId();
     }
-    public class RepositorioUsuario : IRepositorioUsuario
+    public class RepositorioUsuario(IConfiguration configuration) : IRepositorioUsuario
     {
-        private readonly string? _connectionString;
-        public RepositorioUsuario(IConfiguration configuration)
-        {
-            _connectionString = configuration.GetConnectionString("DefaultConnection");
-        }
+        private readonly string? _connectionString = configuration.GetConnectionString("DefaultConnection");
 
         public async Task<int> ObtenerUsuarioId()
         {

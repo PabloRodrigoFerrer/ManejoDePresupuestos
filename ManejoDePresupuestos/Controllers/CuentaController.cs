@@ -6,24 +6,16 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace ManejoDePresupuestos.Controllers
 {
-    public class CuentaController : Controller
+    public class CuentaController(
+        IRepositorioTipoCuenta repositorioTipoCuenta,
+        IRepositorioUsuario repositorioUsuario,
+        IRepositorioCuenta repositorioCuenta,
+        IMapper mapper) : Controller
     {
-        private readonly IRepositorioTipoCuenta _respositorioTipoCuenta;
-        private readonly IRepositorioUsuario _repositorioUsuario;
-        private readonly IRepositorioCuenta _repositorioCuenta;
-        private readonly IMapper _mapper;
-
-        public CuentaController(
-            IRepositorioTipoCuenta repositorioTipoCuenta,
-            IRepositorioUsuario repositorioUsuario,
-            IRepositorioCuenta repositorioCuenta,
-            IMapper mapper)
-        {
-            _respositorioTipoCuenta = repositorioTipoCuenta;
-            _repositorioUsuario = repositorioUsuario;
-            _repositorioCuenta = repositorioCuenta;
-            _mapper = mapper;
-        }
+        private readonly IRepositorioTipoCuenta _respositorioTipoCuenta = repositorioTipoCuenta;
+        private readonly IRepositorioUsuario _repositorioUsuario = repositorioUsuario;
+        private readonly IRepositorioCuenta _repositorioCuenta = repositorioCuenta;
+        private readonly IMapper _mapper = mapper;
 
         public async Task<IActionResult> Index()
         {
@@ -46,9 +38,11 @@ namespace ManejoDePresupuestos.Controllers
             var usuarioId = await _repositorioUsuario.ObtenerUsuarioId();
             var tipoCuentas = await _respositorioTipoCuenta.ObtenerCuentasPorUsuario(usuarioId);
 
-            var model = new CuentaAgregarViewModel();
-            model.TiposCuentas = tipoCuentas.Select(c =>
-                new SelectListItem(c.Nombre, c.Id.ToString()));
+            var model = new CuentaAgregarViewModel
+            {
+                TiposCuentas = tipoCuentas.Select(c =>
+                    new SelectListItem(c.Nombre, c.Id.ToString()))
+            };
 
             return View(model);
         }

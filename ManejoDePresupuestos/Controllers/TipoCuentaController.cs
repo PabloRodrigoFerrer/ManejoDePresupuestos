@@ -4,19 +4,13 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace ManejoDePresupuestos.Controllers
 {
-    public class TipoCuentaController : Controller
+    public class TipoCuentaController(
+        IRepositorioTipoCuenta repositorioTipoCuenta,
+        IRepositorioUsuario repositorioUsuario
+            ) : Controller
     {
-        private readonly IRepositorioTipoCuenta _repositorioTipoCuenta;
-        private readonly IRepositorioUsuario _repositorioUsuario;
-
-        public TipoCuentaController(
-            IRepositorioTipoCuenta repositorioTipoCuenta,
-            IRepositorioUsuario repositorioUsuario
-            )
-        {
-            _repositorioTipoCuenta = repositorioTipoCuenta;
-            _repositorioUsuario = repositorioUsuario;
-        }
+        private readonly IRepositorioTipoCuenta _repositorioTipoCuenta = repositorioTipoCuenta;
+        private readonly IRepositorioUsuario _repositorioUsuario = repositorioUsuario;
 
         public async Task<IActionResult> Index()
         {
@@ -116,7 +110,7 @@ namespace ManejoDePresupuestos.Controllers
             int usuarioId = await _repositorioUsuario.ObtenerUsuarioId();
             var tiposCuentas = await _repositorioTipoCuenta.ObtenerCuentasPorUsuario(usuarioId);
 
-            int[] idsCuentasUsuario = tiposCuentas.Select(x => x.Id).ToArray();
+            int[] idsCuentasUsuario = [.. tiposCuentas.Select(x => x.Id)];
             //comparación ids cuentas con ids del usuario
             var idsNoPertenecenAlUsuario = ids.Except(idsCuentasUsuario).ToArray();
 

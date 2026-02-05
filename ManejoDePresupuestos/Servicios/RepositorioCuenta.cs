@@ -13,13 +13,9 @@ namespace ManejoDePresupuestos.Servicios
         Task<IEnumerable<Cuenta>> ObtenerCuentas(int usuarioId);
     }
 
-    public class RepositorioCuenta : IRepositorioCuenta
+    public class RepositorioCuenta(IConfiguration configuration) : IRepositorioCuenta
     {
-        private readonly string? _connectionString;
-        public RepositorioCuenta(IConfiguration configuration)
-        {
-            _connectionString = configuration.GetConnectionString("DefaultConnection");
-        }
+        private readonly string? _connectionString = configuration.GetConnectionString("DefaultConnection");
 
         public async Task Create(Cuenta cuenta)
         {
@@ -28,7 +24,7 @@ namespace ManejoDePresupuestos.Servicios
                             select SCOPE_IDENTITY()";
 
             using var connection = new SqlConnection(_connectionString);
-            int id = connection.QuerySingle<int>(query, cuenta);
+            int id = await connection.QuerySingleAsync<int>(query, cuenta);
            
             cuenta.Id = id;
         }

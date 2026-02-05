@@ -7,16 +7,10 @@ using System.Threading.Tasks;
 
 namespace ManejoDePresupuestos.Controllers
 {
-    public class CategoriaController : Controller
+    public class CategoriaController(IRepositorioCategoria repositorioCategoria, IRepositorioUsuario repositorioUsuario) : Controller
     {
-        private readonly IRepositorioCategoria _repositorioCategoria;
-        private readonly IRepositorioUsuario _repositorioUsuario;
-
-        public CategoriaController(IRepositorioCategoria repositorioCategoria, IRepositorioUsuario repositorioUsuario)
-        {
-           _repositorioCategoria = repositorioCategoria;
-           _repositorioUsuario = repositorioUsuario;
-        }
+        private readonly IRepositorioCategoria _repositorioCategoria = repositorioCategoria;
+        private readonly IRepositorioUsuario _repositorioUsuario = repositorioUsuario;
 
         public async Task<IActionResult> Index()
         {

@@ -17,14 +17,9 @@ namespace ManejoDePresupuestos.Servicios
         Task Ordenar(IEnumerable<TipoCuenta> tipoCuentasOrdenados);
     }
 
-    public class RepositorioTipoCuenta : IRepositorioTipoCuenta
+    public class RepositorioTipoCuenta(IConfiguration configuration) : IRepositorioTipoCuenta
     {
-        private readonly string? _connectionString;
-
-        public RepositorioTipoCuenta(IConfiguration configuration)
-        {
-            _connectionString = configuration.GetConnectionString("DefaultConnection");
-        }
+        private readonly string? _connectionString = configuration.GetConnectionString("DefaultConnection");
 
         public async Task Create(TipoCuenta tipoCuenta)
         {
