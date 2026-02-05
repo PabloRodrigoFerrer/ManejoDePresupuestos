@@ -68,7 +68,7 @@ namespace ManejoDePresupuestos.Controllers
         {
             if (!ModelState.IsValid)
                 return View(tipoCuenta);
-            await _repositorioTipoCuenta.Actualizar(tipoCuenta);
+            await _repositorioTipoCuenta.Editar(tipoCuenta);
             return RedirectToAction("index");
         }
 
@@ -93,7 +93,7 @@ namespace ManejoDePresupuestos.Controllers
             if (tipoCuenta is null)
                 return RedirectToAction("NoEncontrado", "Home");
 
-            await _repositorioTipoCuenta.Delete(id);
+            await _repositorioTipoCuenta.Borrar(id);
 
             return RedirectToAction("index");
         }

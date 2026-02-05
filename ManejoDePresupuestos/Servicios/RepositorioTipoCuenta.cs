@@ -8,9 +8,9 @@ namespace ManejoDePresupuestos.Servicios
 {
     public interface IRepositorioTipoCuenta
     {
-        Task Actualizar(TipoCuenta tipoCuenta);
+        Task Editar(TipoCuenta tipoCuenta);
         Task Create(TipoCuenta tipoCuenta);
-        Task Delete(int id);
+        Task Borrar(int id);
         Task<bool> Existe(string nombre, int usuarioId);
         Task<IEnumerable<TipoCuenta>> ObtenerCuentasPorUsuario(int usuarioId);
         Task<TipoCuenta?> ObtenerPorId(int id, int usuarioId);
@@ -63,7 +63,7 @@ namespace ManejoDePresupuestos.Servicios
         }
 
 
-        public async Task Delete(int id)
+        public async Task Borrar(int id)
         {
             string query = "delete from TiposCuentas where Id = @id";
 
@@ -72,7 +72,7 @@ namespace ManejoDePresupuestos.Servicios
         }
 
 
-        public async Task Actualizar(TipoCuenta tipoCuenta)
+        public async Task Editar(TipoCuenta tipoCuenta)
         {
             using var connection = new SqlConnection(_connectionString);
             await connection.ExecuteAsync
