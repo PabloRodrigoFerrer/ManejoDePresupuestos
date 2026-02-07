@@ -88,5 +88,9 @@ namespace ManejoDePresupuestos.Controllers
             await _repositorioCategoria.Borrar(id);
             return RedirectToAction(nameof(Index));
         }
+
+
+       
+       
     }
 }
