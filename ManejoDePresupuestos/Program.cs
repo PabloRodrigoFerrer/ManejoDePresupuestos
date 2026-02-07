@@ -16,6 +16,7 @@ builder.Services.AddTransient<IRepositorioTransaccion, RepositorioTransaccion>()
 builder.Services.AddAutoMapper(cfg =>
 {
     cfg.CreateMap<Cuenta, CuentaAgregarViewModel>();
+    cfg.CreateMap<Transaccion, TransaccionEditarViewModel>();
 });
 
 var app = builder.Build();
