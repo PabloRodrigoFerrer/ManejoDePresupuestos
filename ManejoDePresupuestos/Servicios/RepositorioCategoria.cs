@@ -11,6 +11,7 @@ namespace ManejoDePresupuestos.Servicios
         Task Editar(Categoria categoria);
         Task<Categoria?> ObtenerCategoriaPorId(int id, int usuarioId);
         Task<IEnumerable<Categoria>> ObtenerCategorias(int usuarioId);
+        Task<IEnumerable<Categoria>> ObtenerPorTipoOperacion(int usuarioId, TipoOperacion idTipoOperacion);
     }
 
     public class RepositorioCategoria(IConfiguration configuration) : IRepositorioCategoria
@@ -67,6 +68,15 @@ namespace ManejoDePresupuestos.Servicios
             await connection.ExecuteAsync(query, new {id});
         }
 
+        public async Task<IEnumerable<Categoria>> ObtenerPorTipoOperacion(int usuarioId,TipoOperacion idTipoOperacion)
+        {
+            string query = @"select * 
+                            from Categorias
+                            where TipoOperacionId = @idTipoOperacion and UsuarioId = @usuarioId";
+
+            var connection = new SqlConnection(_connectionString);
+            return await connection.QueryAsync<Categoria>(query, new { idTipoOperacion, usuarioId });
+        }
 
     }
 }
