@@ -3,6 +3,6 @@
     public class TransaccionEditarViewModel : TransaccionAgregarViewModel
     {
         public decimal MontoAnterior { get; set; }
-        public int cuentaAnteriorId { get; set; }
+        public int CuentaAnteriorId { get; set; }
     }
 }

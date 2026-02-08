@@ -26,10 +26,10 @@ namespace ManejoDePresupuestos.Controllers
             int usuarioId = await _repositorioUsuario.ObtenerUsuarioId();
             var model = new TransaccionAgregarViewModel
             {
-                Cuentas = await ObtenerCuentas(usuarioId)
+                Cuentas = await ObtenerCuentasParaSelect(usuarioId)
             };
 
-            model.Categorias = await ObtenerCategorias(usuarioId, model.TipoOperacion);
+            model.Categorias = await ObtenerCategoriasParaSelect(usuarioId, model.TipoOperacionId);
             return View(model);
         }
 
@@ -47,7 +47,7 @@ namespace ManejoDePresupuestos.Controllers
             if (cuenta is null || categoria is null)
                 return RedirectToAction("NoEncontrado", "Home");
 
-            if (modelo.TipoOperacion is TipoOperacion.Gasto)
+            if (modelo.TipoOperacionId is TipoOperacion.Gasto)
                 modelo.Monto *= -1;
 
             modelo.UsuarioId = usuarioId;
@@ -65,14 +65,14 @@ namespace ManejoDePresupuestos.Controllers
             if (transaccion is null)
                 return RedirectToAction("NoEncontrado", "Home");
 
-            transaccion.MontoAnterior = transaccion.Monto;
-            if (transaccion.TipoOperacion is TipoOperacion.Gasto)
-                transaccion.MontoAnterior = transaccion.Monto * -1;
+            transaccion.MontoAnterior = transaccion.TipoOperacionId is TipoOperacion.Gasto
+                ? transaccion.MontoAnterior = transaccion.Monto * -1
+                : transaccion.MontoAnterior = transaccion.Monto;
 
-            transaccion.cuentaAnteriorId = transaccion.CuentaId;
+            transaccion.CuentaAnteriorId = transaccion.CuentaId;
 
-            transaccion.Cuentas = await ObtenerCuentas(usuarioId);
-            transaccion.Categorias = await ObtenerCategorias(usuarioId, transaccion.TipoOperacion);
+            transaccion.Cuentas = await ObtenerCuentasParaSelect(usuarioId);
+            transaccion.Categorias = await ObtenerCategoriasParaSelect(usuarioId, transaccion.TipoOperacionId);
             return View(transaccion);
         }
 
@@ -85,26 +85,42 @@ namespace ManejoDePresupuestos.Controllers
                 return View(transaccion);
 
             // validar id de  cuentas y categorias
-            var cuentas = await _repositorioCuentas.ObtenerCuentaPorId(transaccion.Id, usuarioId);
+            var cuentas = await _repositorioCuentas.ObtenerCuentaPorId(transaccion.CuentaId, usuarioId);
             var categoria = 
                 await _repositorioCategoria.ObtenerCategoriaPorId(transaccion.CategoriaId, usuarioId);
 
             if (cuentas is null || categoria is null)
                 return RedirectToAction("NoEncontrado", "Home");
 
-            await _repositorioTransaccion
-                .Editar(transaccion, transaccion.cuentaAnteriorId, transaccion.MontoAnterior);
+            transaccion.Monto = transaccion.TipoOperacionId is TipoOperacion.Gasto
+                 ? transaccion.Monto *= -1
+                 : transaccion.Monto;
 
-            return RedirectToAction("Index", "Home");
+            await _repositorioTransaccion
+                .Editar(transaccion, transaccion.CuentaAnteriorId, transaccion.MontoAnterior);
+
+            return RedirectToAction("Index");
         }
 
-        public async Task<IEnumerable<SelectListItem>> ObtenerCategorias(int usuarioId, TipoOperacion tipoOperacionid)
+        [HttpPost]
+        public async Task<IActionResult> Borrar(int id)
+        {
+            // validar que transacción pertenece al usuario que hace la solicitud
+            var usuarioId = await _repositorioUsuario.ObtenerUsuarioId();
+            var transaccion = await _repositorioTransaccion.ObtenerPorId(id, usuarioId);
+            if (transaccion is null) return RedirectToAction("NoEncontrado", "Home");
+
+            await _repositorioTransaccion.Borrar(id);
+            return RedirectToAction("Index");
+        }
+
+        private async Task<IEnumerable<SelectListItem>> ObtenerCategoriasParaSelect(int usuarioId, TipoOperacion tipoOperacionid)
         {
             var categorias = await _repositorioCategoria.ObtenerPorTipoOperacion(usuarioId, tipoOperacionid);
             return categorias.Select(c => new SelectListItem(c.Nombre, c.Id.ToString()));
         }
 
-        public async Task<IEnumerable<SelectListItem>> ObtenerCuentas(int usuarioId)
+        private async Task<IEnumerable<SelectListItem>> ObtenerCuentasParaSelect(int usuarioId)
         {
             var cuentas = await _repositorioCuentas.ObtenerCuentas(usuarioId);
             return cuentas.Select(c => new SelectListItem(c.Nombre, c.Id.ToString()));
@@ -114,7 +130,7 @@ namespace ManejoDePresupuestos.Controllers
         public async Task<IActionResult> CategoriasPorTipoOperacion([FromBody] TipoOperacion idTipoOperacion)
         {
             var usuarioId = await _repositorioUsuario.ObtenerUsuarioId();
-            var categorias =await ObtenerCategorias(usuarioId, idTipoOperacion);
+            var categorias =await ObtenerCategoriasParaSelect(usuarioId, idTipoOperacion);
 
             return Ok(categorias);
         }
