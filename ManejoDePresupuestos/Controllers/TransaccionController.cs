@@ -3,6 +3,7 @@ using ManejoDePresupuestos.Models;
 using ManejoDePresupuestos.Servicios;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using System.Reflection.Metadata.Ecma335;
 
 namespace ManejoDePresupuestos.Controllers
 {
@@ -28,8 +29,8 @@ namespace ManejoDePresupuestos.Controllers
             {
                 Cuentas = await ObtenerCuentasParaSelect(usuarioId)
             };
-
             model.Categorias = await ObtenerCategoriasParaSelect(usuarioId, model.TipoOperacionId);
+          
             return View(model);
         }
 
@@ -53,10 +54,11 @@ namespace ManejoDePresupuestos.Controllers
             modelo.UsuarioId = usuarioId;
 
             await _repositorioTransaccion.Agregar(modelo);
+            
             return RedirectToAction("Index");
         }
 
-        public async Task<IActionResult> Editar(int id)
+        public async Task<IActionResult> Editar(int id, string? urlRetorno = null)
         {
             var usuarioId = await _repositorioUsuario.ObtenerUsuarioId();
             var transaccion =
@@ -73,6 +75,10 @@ namespace ManejoDePresupuestos.Controllers
 
             transaccion.Cuentas = await ObtenerCuentasParaSelect(usuarioId);
             transaccion.Categorias = await ObtenerCategoriasParaSelect(usuarioId, transaccion.TipoOperacionId);
+
+            if (urlRetorno is not null)
+                transaccion.UrlRetorno = urlRetorno;
+
             return View(transaccion);
         }
 
@@ -99,11 +105,14 @@ namespace ManejoDePresupuestos.Controllers
             await _repositorioTransaccion
                 .Editar(transaccion, transaccion.CuentaAnteriorId, transaccion.MontoAnterior);
 
-            return RedirectToAction("TransaccionesDetallePorCuenta");
+            if (string.IsNullOrEmpty(transaccion.UrlRetorno))
+                return RedirectToAction("Index");
+            else
+                return LocalRedirect(transaccion.UrlRetorno);         
         }
 
         [HttpPost]
-        public async Task<IActionResult> Borrar(int id)
+        public async Task<IActionResult> Borrar(int id, string? urlRetorno = null)
         {
             // validar que transacción pertenece al usuario que hace la solicitud
             var usuarioId = await _repositorioUsuario.ObtenerUsuarioId();
@@ -111,7 +120,11 @@ namespace ManejoDePresupuestos.Controllers
             if (transaccion is null) return RedirectToAction("NoEncontrado", "Home");
 
             await _repositorioTransaccion.Borrar(id);
-            return RedirectToAction("Index");
+
+            if (urlRetorno is null)
+                return RedirectToAction("Index");
+            else
+                return LocalRedirect(urlRetorno);
         }
 
         [HttpGet]
@@ -125,6 +138,8 @@ namespace ManejoDePresupuestos.Controllers
             var model = await GenerarVmTransaccionesPorCuenta(cuentaId, usuarioId, mes, año);
 
             ViewBag.Cuenta = cuenta.Nombre;
+
+            
 
             return View(model);
         }
@@ -172,6 +187,7 @@ namespace ManejoDePresupuestos.Controllers
                         Transacciones = grupo.AsEnumerable()
                     });
 
+            model.UrlRetorno = HttpContext.Request.Path + HttpContext.Request.QueryString;
             return model;
         }
     }

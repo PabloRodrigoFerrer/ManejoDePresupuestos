@@ -8,5 +8,7 @@ namespace ManejoDePresupuestos.Models
         public IEnumerable<SelectListItem> Categorias { get; set; } = [];
 
         public TipoOperacion TipoOperacionId { get; set; } = TipoOperacion.Ingreso;
+
+        public string UrlRetorno { get; set; } = string.Empty;
     }
 }

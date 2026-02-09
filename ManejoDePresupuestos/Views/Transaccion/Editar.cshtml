@@ -10,6 +10,7 @@
     <div asp-validation-summary="ModelOnly" class="text-danger"></div>
    
     <input asp-for="Id" hidden="hidden" />
+    <input asp-for="UrlRetorno" hidden="hidden" />
     <input asp-for="MontoAnterior" hidden="hidden"/>
     <input asp-for="CuentaAnteriorId" hidden="hidden"/> 
 
@@ -50,8 +51,8 @@
     </div>
 
     <button type="submit" class="btn btn-primary">Actualizar</button>
-    <button asp-action="Borrar" class="btn btn-danger">Eliminar</button>
-    <a asp-action="Index" class="btn btn-secondary">Cancelar</a>
+    <button asp-action="Borrar" asp-route-urlRetorno="@Model.UrlRetorno" class="btn btn-danger">Eliminar</button>
+    <a href="@(Model.UrlRetorno ?? Url.Action("Index"))" class="btn btn-secondary">Cancelar</a>
 </form>
 
 

@@ -13,7 +13,7 @@
         public decimal BalanceIngresos => TransaccionesAgrupadas.Sum(t => t.BalanceIngreso);
         public decimal BalanceGastos => TransaccionesAgrupadas.Sum(t => t.BalanceGasto);
         public decimal Total => BalanceIngresos - BalanceGastos;
-
+        public string? UrlRetorno = string.Empty;
         public string AsignarClaseBalance(TipoOperacion operacion) => operacion is TipoOperacion.Ingreso ? "activo" : "pasivo";
     }
 
