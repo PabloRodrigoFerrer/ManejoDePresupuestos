@@ -37,10 +37,10 @@ namespace ManejoDePresupuestos.Controllers
         public async Task<IActionResult> Agregar(TransaccionAgregarViewModel modelo)
         {
             int usuarioId = await _repositorioUsuario.ObtenerUsuarioId();
-            
+
             if (!ModelState.IsValid)
                 return View(modelo);
-            
+
             //chequeo que la cuenta y categoria que el usuario manda sea valida
             var cuenta = await _repositorioCuentas.ObtenerCuentaPorId(modelo.CuentaId, usuarioId);
             var categoria = await _repositorioCategoria.ObtenerCategoriaPorId(modelo.CategoriaId, usuarioId);
@@ -51,7 +51,7 @@ namespace ManejoDePresupuestos.Controllers
                 modelo.Monto *= -1;
 
             modelo.UsuarioId = usuarioId;
-            
+
             await _repositorioTransaccion.Agregar(modelo);
             return RedirectToAction("Index");
         }
@@ -59,7 +59,7 @@ namespace ManejoDePresupuestos.Controllers
         public async Task<IActionResult> Editar(int id)
         {
             var usuarioId = await _repositorioUsuario.ObtenerUsuarioId();
-            var transaccion = 
+            var transaccion =
                 await _repositorioTransaccion.ObtenerPorIdConTipoOperacion(id, usuarioId);
 
             if (transaccion is null)
@@ -85,11 +85,11 @@ namespace ManejoDePresupuestos.Controllers
                 return View(transaccion);
 
             // validar id de  cuentas y categorias
-            var cuentas = await _repositorioCuentas.ObtenerCuentaPorId(transaccion.CuentaId, usuarioId);
-            var categoria = 
+            var cuenta = await _repositorioCuentas.ObtenerCuentaPorId(transaccion.CuentaId, usuarioId);
+            var categoria =
                 await _repositorioCategoria.ObtenerCategoriaPorId(transaccion.CategoriaId, usuarioId);
 
-            if (cuentas is null || categoria is null)
+            if (cuenta is null || categoria is null)
                 return RedirectToAction("NoEncontrado", "Home");
 
             transaccion.Monto = transaccion.TipoOperacionId is TipoOperacion.Gasto
@@ -99,7 +99,7 @@ namespace ManejoDePresupuestos.Controllers
             await _repositorioTransaccion
                 .Editar(transaccion, transaccion.CuentaAnteriorId, transaccion.MontoAnterior);
 
-            return RedirectToAction("Index");
+            return RedirectToAction("TransaccionesDetallePorCuenta");
         }
 
         [HttpPost]
@@ -112,6 +112,21 @@ namespace ManejoDePresupuestos.Controllers
 
             await _repositorioTransaccion.Borrar(id);
             return RedirectToAction("Index");
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> TransaccionesDetallePorCuenta(int cuentaId, int mes, int año)
+        {
+            int usuarioId = await _repositorioUsuario.ObtenerUsuarioId();
+            var cuenta = await _repositorioCuentas.ObtenerCuentaPorId(cuentaId, usuarioId);
+
+            if (cuenta is null) return RedirectToAction("NoEncontrado", "Home");
+
+            var model = await GenerarVmTransaccionesPorCuenta(cuentaId, usuarioId, mes, año);
+
+            ViewBag.Cuenta = cuenta.Nombre;
+
+            return View(model);
         }
 
         private async Task<IEnumerable<SelectListItem>> ObtenerCategoriasParaSelect(int usuarioId, TipoOperacion tipoOperacionid)
@@ -130,9 +145,34 @@ namespace ManejoDePresupuestos.Controllers
         public async Task<IActionResult> CategoriasPorTipoOperacion([FromBody] TipoOperacion idTipoOperacion)
         {
             var usuarioId = await _repositorioUsuario.ObtenerUsuarioId();
-            var categorias =await ObtenerCategoriasParaSelect(usuarioId, idTipoOperacion);
+            var categorias = await ObtenerCategoriasParaSelect(usuarioId, idTipoOperacion);
 
             return Ok(categorias);
+        }
+
+        private async Task<TransaccionesPorCuentaViewModel> GenerarVmTransaccionesPorCuenta(int cuentaId, int usuarioId, int mes, int año)
+        {
+            var model = new TransaccionesPorCuentaViewModel { CuentaId = cuentaId };
+
+            model.FechaInicio = mes <= 0 || mes > 12 || año < 1900 
+                ? model.FechaInicio = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1) 
+                : model.FechaInicio = new DateTime(año, mes, 1);
+
+            model.FechaFin = model.FechaInicio.AddMonths(1).AddDays(-1);
+
+            var transacciones = 
+                await _repositorioTransaccion.ObtenerTransaccionesPorCuenta(cuentaId, usuarioId, model.FechaInicio, model.FechaFin);
+            model.TransaccionesAgrupadas =
+                    transacciones 
+                    .OrderByDescending(t => t.FechaTransaccion)
+                    .GroupBy(t => t.FechaTransaccion)
+                    .Select(grupo => new TransaccionesPorFecha
+                    {
+                        FechaTransaccion = grupo.Key,
+                        Transacciones = grupo.AsEnumerable()
+                    });
+
+            return model;
         }
     }
 }

@@ -43,7 +43,7 @@
                 }
                 <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="@dataBsTarget" aria-expanded="true" aria-controls="collapseOne">
                     <div class="d-flex justify-content-between align-items-center w-100 me-2">
-                        <h4>@cuenta.TipoCuenta</h4>
+                        <h4>@cuenta.TipoCuenta</h4> @* meter en un anchor para navegar a transaccíoens *@
                         <h5>@cuenta.Balance</h5>
                     </div>
                 </button>
@@ -52,7 +52,10 @@
             {
                 <div id="@id" class="accordion-collapse collapse show">
                     <div class="accordion-body d-flex justify-content-between">
-                        <p>@item.Nombre
+                        <p>
+                            <a asp-action="TransaccionesDetallePorCuenta" asp-route-cuentaId="@item.Id" asp-controller="Transaccion">
+                            @item.Nombre
+                            </a>
                             <a asp-action="Editar" asp-route-id="@item.Id" class="text-primary"><i class="bi bi-pencil"></i></a>
                             <a asp-action="Borrar" asp-route-id="@item.Id" class="text-danger"><i class="bi bi-trash"></i></a>
                         </p>
