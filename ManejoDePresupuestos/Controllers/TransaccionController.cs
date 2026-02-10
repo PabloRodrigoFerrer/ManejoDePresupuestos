@@ -3,7 +3,9 @@ using ManejoDePresupuestos.Models;
 using ManejoDePresupuestos.Servicios;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using System.Reflection;
 using System.Reflection.Metadata.Ecma335;
+using System.Threading.Tasks;
 
 namespace ManejoDePresupuestos.Controllers
 {
@@ -17,11 +19,17 @@ namespace ManejoDePresupuestos.Controllers
         private readonly IRepositorioCuenta _repositorioCuentas = repositorioCuenta;
         private readonly IRepositorioCategoria _repositorioCategoria = repositorioCategoria;
 
-        public IActionResult Index()
+        //GET 
+        public async Task<IActionResult> Index(int mes, int año)
         {
-            return View();
+            int usuarioId = await _repositorioUsuario.ObtenerUsuarioId();
+
+            var model = await GenerarVmTransaccionesPorUsuario(usuarioId, mes, año);
+            
+            return View(model);
         }
 
+        //GET
         public async Task<IActionResult> Agregar()
         {
             int usuarioId = await _repositorioUsuario.ObtenerUsuarioId();
@@ -139,9 +147,16 @@ namespace ManejoDePresupuestos.Controllers
 
             ViewBag.Cuenta = cuenta.Nombre;
 
-            
-
             return View(model);
+        }
+
+        [HttpPost] // Endpoint para actualizar el dropdown dependendiente a través de fetch
+        public async Task<IActionResult> CategoriasPorTipoOperacion([FromBody] TipoOperacion idTipoOperacion)
+        {
+            var usuarioId = await _repositorioUsuario.ObtenerUsuarioId();
+            var categorias = await ObtenerCategoriasParaSelect(usuarioId, idTipoOperacion);
+
+            return Ok(categorias);
         }
 
         private async Task<IEnumerable<SelectListItem>> ObtenerCategoriasParaSelect(int usuarioId, TipoOperacion tipoOperacionid)
@@ -156,29 +171,37 @@ namespace ManejoDePresupuestos.Controllers
             return cuentas.Select(c => new SelectListItem(c.Nombre, c.Id.ToString()));
         }
 
-        [HttpPost] // Endpoint para actualizar el dropdown dependendiente a través de fetch
-        public async Task<IActionResult> CategoriasPorTipoOperacion([FromBody] TipoOperacion idTipoOperacion)
-        {
-            var usuarioId = await _repositorioUsuario.ObtenerUsuarioId();
-            var categorias = await ObtenerCategoriasParaSelect(usuarioId, idTipoOperacion);
-
-            return Ok(categorias);
-        }
-
         private async Task<TransaccionesPorCuentaViewModel> GenerarVmTransaccionesPorCuenta(int cuentaId, int usuarioId, int mes, int año)
         {
             var model = new TransaccionesPorCuentaViewModel { CuentaId = cuentaId };
-
-            model.FechaInicio = mes <= 0 || mes > 12 || año < 1900 
-                ? model.FechaInicio = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1) 
-                : model.FechaInicio = new DateTime(año, mes, 1);
-
-            model.FechaFin = model.FechaInicio.AddMonths(1).AddDays(-1);
+            (model.FechaInicio, model.FechaFin) = ObtenerFechaInicioFin(mes, año);
 
             var transacciones = 
                 await _repositorioTransaccion.ObtenerTransaccionesPorCuenta(cuentaId, usuarioId, model.FechaInicio, model.FechaFin);
+            
+            GenerarTransaccionesPorFecha(model, transacciones);
+           
+            return model;
+        }
+
+
+        private async Task<TransaccionesPorCuentaViewModel> GenerarVmTransaccionesPorUsuario(int usuarioId, int mes, int año)
+        {
+            var model = new TransaccionesPorCuentaViewModel() ;
+            (model.FechaInicio, model.FechaFin) = ObtenerFechaInicioFin(mes, año);
+
+            var transacciones =
+                await _repositorioTransaccion.ObtenerTransaccionesPorUsuario(usuarioId, model.FechaInicio, model.FechaFin);
+            
+            GenerarTransaccionesPorFecha(model, transacciones);
+            return model;
+        }
+
+        //procedimiento pasando instancia de vm
+        private void GenerarTransaccionesPorFecha(TransaccionesPorCuentaViewModel model, IEnumerable<TransaccionDetalleDTO> transacciones)
+        {
             model.TransaccionesAgrupadas =
-                    transacciones 
+                    transacciones
                     .OrderByDescending(t => t.FechaTransaccion)
                     .GroupBy(t => t.FechaTransaccion)
                     .Select(grupo => new TransaccionesPorFecha
@@ -188,7 +211,36 @@ namespace ManejoDePresupuestos.Controllers
                     });
 
             model.UrlRetorno = HttpContext.Request.Path + HttpContext.Request.QueryString;
-            return model;
+        }
+
+
+        //obtener por funcion sin instancia de vm
+        private IEnumerable<TransaccionesPorFecha> GenerarTransaccionesPorFecha(IEnumerable<TransaccionDetalleDTO> transacciones)
+        {
+            var TransaccionesAgrupadas =
+                    transacciones
+                    .OrderByDescending(t => t.FechaTransaccion)
+                    .GroupBy(t => t.FechaTransaccion)
+                    .Select(grupo => new TransaccionesPorFecha
+                    {
+                        FechaTransaccion = grupo.Key,
+                        Transacciones = grupo.AsEnumerable()
+                    });
+
+           return TransaccionesAgrupadas;
+        }
+
+        private (DateTime fechaInicio, DateTime fechaFin) ObtenerFechaInicioFin(int mes, int año)
+        {
+           var fechaInicio = DateTime.Now;
+            
+           fechaInicio = mes <= 0 || mes > 12 || año < 1900
+           ? fechaInicio = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1)
+           : fechaInicio = new DateTime(año, mes, 1);
+
+            var fechaFin = fechaInicio.AddMonths(1).AddDays(-1);
+
+            return (fechaInicio, fechaFin);
         }
     }
 }
