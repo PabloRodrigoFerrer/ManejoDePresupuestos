@@ -15,6 +15,7 @@ namespace ManejoDePresupuestos.Servicios
         Task<TransaccionEditarViewModel?> ObtenerPorIdConTipoOperacion(int id, int usuarioId);
         Task<IEnumerable<TransaccionDetalleDTO>> ObtenerTransaccionesPorCuenta(int cuentaId, int usuarioId);
         Task<IEnumerable<TransaccionDetalleDTO>> ObtenerTransaccionesPorCuenta(int cuentaId, int usuarioId, DateTime fechaInicio, DateTime fechaFin);
+        Task<IEnumerable<TransaccionDetalleDTO>> ObtenerTransaccionesPorUsuario(int usuarioId, DateTime fechaInicio, DateTime fechaFin);
     }
     public class RepositorioTransaccion(IConfiguration configuration) : IRepositorioTransaccion
     {
@@ -133,6 +134,24 @@ namespace ManejoDePresupuestos.Servicios
                         fechaInicio,
                         fechaFin,
                     });
+        }
+
+        public async Task<IEnumerable<TransaccionDetalleDTO>> ObtenerTransaccionesPorUsuario(int usuarioId,
+           DateTime fechaInicio, DateTime fechaFin)
+        {
+            string query = @"select Trans.Id, Trans.FechaTransaccion, Trans.Monto, Trans.Nota,
+		                    cat.Nombre as Categoria, tipO.Id as TipoOperacion
+                            from Transacciones as Trans
+                            inner join Categorias as cat
+                            on cat.Id = Trans.CategoriaId
+                            inner join TipoOperacion as tipO
+                            on tipO.Id = cat.TipoOperacionId
+                            where Trans.UsuarioId = @usuarioId and
+                                Trans.FechaTransaccion >= @fechaInicio and Trans.FechaTransaccion <= @fechaFin";
+
+            using var connection = new SqlConnection(_connectionString);
+            return await connection.QueryAsync<TransaccionDetalleDTO>(query,
+                    new { usuarioId, fechaInicio, fechaFin });
         }
     }
 }
