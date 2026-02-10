@@ -26,64 +26,7 @@
 
 <hr />
 
-<section class="d-flex justify-content-between mb-3">
-    <div class="text-center">
-        <h4>Ingresos</h4>
-        <h5 class="activo">@Model.BalanceIngresos</h5>
-    </div>
-
-    <div class="text-center">
-        <h4>Gastos</h4>
-        <h5 class="pasivo">@Model.BalanceGastos</h5>
-    </div>
-
-    <div class="text-center">
-        <h4>Total</h4>
-        <h5>@Model.Total</h5>
-    </div>
-</section>
-
-@if (Model.TransaccionesAgrupadas.Count() <= 0 )
-{
-    <h5>No hay transacciones disponibles.</h5>
-}
-else
-{
-    <table class="table">
-        <tbody>
-            @foreach (var grupo in Model.TransaccionesAgrupadas)
-            {
-                <tr style="background-color: lightsteelblue;">
-
-                    <td colspan="3">
-                        @grupo.FechaTransaccion.ToString("dd")
-                        <span class="badge bg-secondary">@grupo.FechaTransaccion.ToString("ddd")</span>
-                    </td>
-                    @if (grupo.BalanceIngreso > 0)
-                    {
-                        <td style="font-weight:700; font-size: 18px">@grupo.BalanceIngreso</td>
-                    }
-                    else
-                    {
-                        <td style="font-weight:700; font-size: 18px">@grupo.BalanceGasto</td>
-                    }
-
-                </tr>
-                @foreach (var transaccion in grupo.Transacciones)
-                {
-                    <tr>
-                        <td>
-                            <a asp-action="Editar" asp-route-id="@transaccion.Id" asp-route-urlRetorno="@Model.UrlRetorno"><i class="bi bi-pencil"></i></a>
-                        </td>
-                        <td>@transaccion.Categoria</td>
-                        <td>@transaccion.TipoOperacion</td>
-                        <td class="@Model.AsignarClaseBalance(transaccion.TipoOperacion)">@transaccion.Monto</td>
-                    </tr>
-                }
-            }
-        </tbody>
-    </table>
-}
+<partial name="_ReporteTransacciones" model="Model"></partial>
 
 
 

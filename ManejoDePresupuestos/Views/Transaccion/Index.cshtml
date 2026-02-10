@@ -1,8 +1,21 @@
-﻿@model IEnumerable<Transaccion>
+﻿@model TransaccionesPorCuentaViewModel
 @{
     ViewData["Title"] = "Transacciones";
 }
 
 <h2>Transacciones</h2>
-<a asp-action="Agregar" class="btn btn-primary">Agregar nueva</a>
 
+<div class="mb-3 d-flex justify-content-between">
+    <div class="d-flex align-items-center gap-2">
+        <a asp-action="Index" asp-route-mes="@Model.MesAnterior" asp-route-año="@Model.AñoAnterior" class="btn btn-secondary"><i class="bi bi-chevron-left"></i></a>
+        <div style="width: 100px" class="text-center">
+            <strong>@Model.FechaInicio.ToString("MMM").ToUpper() - @Model.FechaInicio.Year</strong>
+        </div>
+        <a asp-action="Index" asp-route-mes="@Model.MesPosterior" asp-route-año="@Model.AñoPosterior" class="btn btn-secondary"><i class="bi bi-chevron-right"></i></a>
+    </div>
+    <a asp-action="Agregar" asp-route-urlRetorno="@Model.UrlRetorno" class="btn btn-primary">
+        Nueva transacción
+    </a>
+</div>
+
+<partial name="_ReporteTransacciones" model="Model"></partial>
