@@ -1,6 +1,7 @@
 ﻿using Dapper;
 using ManejoDePresupuestos.Models;
 using Microsoft.Data.SqlClient;
+using System.Diagnostics;
 using static ManejoDePresupuestos.Servicios.RepositorioTransaccion;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 
@@ -16,6 +17,7 @@ namespace ManejoDePresupuestos.Servicios
         Task<IEnumerable<TransaccionDetalleDTO>> ObtenerTransaccionesPorCuenta(int cuentaId, int usuarioId);
         Task<IEnumerable<TransaccionDetalleDTO>> ObtenerTransaccionesPorCuenta(int cuentaId, int usuarioId, DateTime fechaInicio, DateTime fechaFin);
         Task<IEnumerable<TransaccionDetalleDTO>> ObtenerTransaccionesPorUsuario(int usuarioId, DateTime fechaInicio, DateTime fechaFin);
+        Task<IEnumerable<ReporteSemanalDTO>> ObtenerTransaccionesSemanales(int usuarioId, DateTime fechaInicio, DateTime fechaFin);
     }
     public class RepositorioTransaccion(IConfiguration configuration) : IRepositorioTransaccion
     {
@@ -153,5 +155,38 @@ namespace ManejoDePresupuestos.Servicios
             return await connection.QueryAsync<TransaccionDetalleDTO>(query,
                     new { usuarioId, fechaInicio, fechaFin });
         }
+        
+        public async Task<IEnumerable<TransaccionDetalleDTO>> ObtenerTransaccionesDiarias(DateTime fecha)
+        {
+            string query = @"select trans.id, trans.FechaTransaccion, trans.Monto,
+		                  cat.Nombre as Categoria, tipO.Id as TipoOperacion
+                          from Transacciones as trans
+                          inner join Categorias as cat
+                          on cat.Id = trans.CategoriaId
+                          inner join TipoOperacion as tipO
+                          on tipO.Id = cat.TipoOperacionId
+                          where trans.FechaTransaccion = @fechaTransaccion";
+
+            using var connection = new SqlConnection(_connectionString);
+            return await connection.QueryAsync<TransaccionDetalleDTO>(query, new { fecha });
+        }
+
+        public async Task<IEnumerable<ReporteSemanalDTO>> ObtenerTransaccionesSemanales(int usuarioId,DateTime fechaInicio, DateTime fechaFin)
+        {
+            string query = @"select datediff(d, @fechaInicio, FechaTransaccion) / 7 + 1 as Semana,
+		                    sum(case when cat.TipoOperacionId = 1 then trans.Monto else 0 end) as Ingresos,
+		                    sum(case when cat.TipoOperacionId = 2 then trans.Monto else 0 end) as Gastos
+                            from Transacciones as trans
+                            inner join Categorias as cat
+                            on cat.Id = trans.CategoriaId
+                            where trans.UsuarioId = @usuarioId and
+                            trans.FechaTransaccion between @fechaInicio and @fechaFin
+                            group by datediff(d, @fechaInicio, FechaTransaccion) / 7 + 1";
+
+            using var connection = new SqlConnection(_connectionString);
+            return await connection.QueryAsync<ReporteSemanalDTO>(query, new { usuarioId, fechaInicio, fechaFin });
+        }
+       
+    
     }
 }
