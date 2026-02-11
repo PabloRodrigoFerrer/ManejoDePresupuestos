@@ -1,0 +1,41 @@
+﻿@using ManejoDePresupuestos.Enums
+@using ManejoDePresupuestos.ViewModelPartials
+@model ReporteSemanalViewModel
+@{
+    ViewData["Title"] = "Reporte semanal";
+}
+
+<partial name="_SubMenu" model="SubMenuTransacciones.Semanal" />
+
+<partial name="_NavegacionFechas" model="@Model.Navegacion"/>
+
+<partial name="_BalanceTotales" model="@Model.Totales" />
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Semana</th>
+            <th>Ingresos</th>
+            <th>Gastos</th>
+        </tr>
+    </thead>
+
+    <tbody>
+        @foreach (var semana in Model.ReportesSemanales)
+        {
+            <tr>
+                <td>
+                    @semana.FechaInicioSemana.ToString("d") - @semana.FechaFinalSemana.ToString("d")
+                </td>
+                <td>
+                    @semana.Ingresos
+                </td>
+                <td class="pasivo">
+                    @semana.Gastos
+                </td>
+            </tr>
+        }
+
+    </tbody>
+
+</table>

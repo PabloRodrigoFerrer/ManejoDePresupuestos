@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using ManejoDePresupuestos.Models;
 using ManejoDePresupuestos.Servicios;
+using ManejoDePresupuestos.ViewModelPartials;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using System.Reflection;
@@ -66,6 +67,7 @@ namespace ManejoDePresupuestos.Controllers
             return RedirectToAction("Index");
         }
 
+        //GET
         public async Task<IActionResult> Editar(int id, string? urlRetorno = null)
         {
             var usuarioId = await _repositorioUsuario.ObtenerUsuarioId();
@@ -158,6 +160,76 @@ namespace ManejoDePresupuestos.Controllers
 
             return Ok(categorias);
         }
+        //GET
+        public async Task<IActionResult> Diario()
+        {
+            return View();
+        }
+
+        //GET
+        public async Task<IActionResult> Semanal(int mes, int año)
+        {
+            var usuarioId = await _repositorioUsuario.ObtenerUsuarioId();
+
+            (DateTime fechaInicio, DateTime fechaFin) = ObtenerFechaInicioFin(mes, año);
+
+            var TransaccionesSemanales = (List<ReporteSemanalDTO>)
+                await _repositorioTransaccion.ObtenerTransaccionesSemanales(usuarioId, fechaInicio, fechaFin);
+     
+            //algorimo para calcular dias de la semana y cantidad de semanas
+            var diasDelMes = Enumerable.Range(0, fechaFin.Day);
+            var semanasDelMes = diasDelMes.Chunk(7).ToList();
+
+            for (var i = 0; i < semanasDelMes.Count; i++)
+            {
+                var semanaIteracion = i + 1;
+                var diaInicio = semanasDelMes[i].First() + 1;
+                var diaFinal = semanasDelMes[i].Last() + 1;
+
+                var semana = TransaccionesSemanales.Where(r => r.Semana == semanaIteracion).FirstOrDefault();
+                if(semana is null)
+                {
+                    TransaccionesSemanales.Add(new ReporteSemanalDTO
+                    {
+                        Semana = semanaIteracion,
+                        FechaInicioSemana = new DateTime(fechaInicio.Year, fechaInicio.Month, diaInicio),
+                        FechaFinalSemana = new DateTime(fechaFin.Year, fechaFin.Month, diaFinal),
+                    });
+                }
+                else
+                {
+                    semana.FechaInicioSemana = new DateTime(fechaInicio.Year, fechaInicio.Month, diaInicio);
+                    semana.FechaFinalSemana = new DateTime(fechaFin.Year, fechaFin.Month, diaFinal);
+                }
+            }
+
+            var model = new ReporteSemanalViewModel
+            {
+                ReportesSemanales = TransaccionesSemanales.OrderByDescending(f => f.FechaInicioSemana),
+                Navegacion = new NavegacionFechasViewModel { FechaReferencia = fechaInicio, Accion = nameof(Semanal) }
+            };
+
+            return View(model);
+        }
+
+        //GET
+        public async Task<IActionResult> Mensual()
+        {
+            return View();
+        }
+
+
+        //GET
+        public async Task<IActionResult> Excel()
+        {
+            return View();
+        }
+
+        //GET
+        public async Task<IActionResult> Calendario()
+        {
+            return View();
+        }
 
         private async Task<IEnumerable<SelectListItem>> ObtenerCategoriasParaSelect(int usuarioId, TipoOperacion tipoOperacionid)
         {
@@ -180,10 +252,16 @@ namespace ManejoDePresupuestos.Controllers
                 await _repositorioTransaccion.ObtenerTransaccionesPorCuenta(cuentaId, usuarioId, model.FechaInicio, model.FechaFin);
             
             GenerarTransaccionesPorFecha(model, transacciones);
-           
+            model.UrlRetorno = HttpContext.Request.Path + HttpContext.Request.QueryString;
+            model.Navegacion = new NavegacionFechasViewModel
+            {
+                Accion = nameof(TransaccionesDetallePorCuenta),
+                FechaReferencia = model.FechaInicio,
+                Parametro = cuentaId
+            };
+
             return model;
         }
-
 
         private async Task<TransaccionesPorCuentaViewModel> GenerarVmTransaccionesPorUsuario(int usuarioId, int mes, int año)
         {
@@ -194,6 +272,14 @@ namespace ManejoDePresupuestos.Controllers
                 await _repositorioTransaccion.ObtenerTransaccionesPorUsuario(usuarioId, model.FechaInicio, model.FechaFin);
             
             GenerarTransaccionesPorFecha(model, transacciones);
+            model.UrlRetorno = HttpContext.Request.Path + HttpContext.Request.QueryString;
+
+            model.Navegacion = new NavegacionFechasViewModel
+            {
+                Accion = nameof(Index),
+                FechaReferencia = model.FechaInicio
+            };
+
             return model;
         }
 
@@ -209,10 +295,7 @@ namespace ManejoDePresupuestos.Controllers
                         FechaTransaccion = grupo.Key,
                         Transacciones = grupo.AsEnumerable()
                     });
-
-            model.UrlRetorno = HttpContext.Request.Path + HttpContext.Request.QueryString;
         }
-
 
         //obtener por funcion sin instancia de vm
         private IEnumerable<TransaccionesPorFecha> GenerarTransaccionesPorFecha(IEnumerable<TransaccionDetalleDTO> transacciones)
