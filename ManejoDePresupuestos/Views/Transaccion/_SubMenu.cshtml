@@ -1,0 +1,22 @@
+﻿@using ManejoDePresupuestos.Enums
+@model SubMenuTransacciones
+
+<ul class="nav nav-pills nav-fill mb-4 mt-4" >
+    <li class="nav-item">
+        <a asp-action="Index" class="nav-link @(Model == SubMenuTransacciones.Diario ? "active" : "")">Diario</a>
+    </li>
+    <li class="nav-item">
+        <a asp-action="Semanal" class="nav-link @(Model == SubMenuTransacciones.Semanal ? "active" : "")">Semanal</a>
+    </li>
+    <li class="nav-item">
+        <a asp-action="Mensual" class="nav-link @(Model == SubMenuTransacciones.Mensual ? "active" : "")">Mensual</a>
+    </li>
+    <li class="nav-item">
+        <a asp-action="Excel" class="nav-link @(Model == SubMenuTransacciones.Excel ? "active" : "")">Excel</a>
+    </li>
+    <li class="nav-item">
+        <a asp-action="Calendario" class="nav-link @(Model == SubMenuTransacciones.Calendario ? "active" : "")">Calendario</a>
+    </li>
+
+
+</ul>
