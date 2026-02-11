@@ -1,0 +1,22 @@
+﻿@using ManejoDePresupuestos.ViewModelPartials
+
+@model BalanceTotalesViewModel
+
+<div class="card mb-5 mt-5 p-3">
+    <section class="d-flex justify-content-around">
+        <div class="text-center">
+            <h4>Ingresos</h4>
+            <h5 class="activo">@Model.Ingresos</h5>
+        </div>
+
+        <div class="text-center">
+            <h4>Gastos</h4>
+            <h5 class="pasivo">@Model.Gastos</h5>
+        </div>
+
+        <div class="text-center">
+            <h4>Total</h4>
+            <h5>@Model.Total</h5>
+        </div>
+    </section>
+</div>
