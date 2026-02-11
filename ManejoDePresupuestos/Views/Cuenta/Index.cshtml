@@ -8,33 +8,34 @@
 <h1>@ViewData["Title"]</h1>
 
 <a asp-action="Agregar" class="btn btn-primary">Agregar nuevo</a>
+<div class="card mb-5 mt-5 p-3">
+    <section class="d-flex justify-content-around">
+        <div class="mb-3 text-center">
+            <h4>Activos</h4>
+            <h5 class="activo">
+                @Model.Where(c => c.Balance > 0).Sum(c => c.Balance)
+            </h5>
+        </div>
 
-<section class="cabecera-totales d-flex justify-content-between mt-5 mb-3">
-    <div class="mb-3 text-center">
-        <h2>Activos</h2>
-        <h3 class="activo">
-            @Model.Where(c => c.Balance > 0).Sum(c => c.Balance)
-        </h3>
-    </div>
+        <div class="mb-3 text-center">
+            <h4>Pasivos</h4>
+            <h5 class="pasivo">
+                @Model.Where(c => c.Balance < 0).Sum(c => c.Balance)
+            </h5>
+        </div>
 
-    <div class="mb-3 text-center">
-        <h2>Pasivos</h2>
-        <h3 class="pasivo">
-            @Model.Where(c => c.Balance < 0).Sum(c => c.Balance)
-        </h3>
-    </div>
-
-    <div class="mb-3 text-center">
-        <h2>Total</h2>
-        <h3>
-            @Model.Sum(c => c.Balance)
-        </h3>
-    </div>
-</section>
+        <div class="mb-3 text-center">
+            <h4>Total</h4>
+            <h5>
+                @Model.Sum(c => c.Balance)
+            </h5>
+        </div>
+    </section>
+</div>
 
 <div class="accordion" id="accordionExample">
-    @foreach(var cuenta in Model)
-    {        
+    @foreach (var cuenta in Model)
+    {
         <div class="accordion-item">
             <h2 class="accordion-header">
                 @{
@@ -48,18 +49,18 @@
                     </div>
                 </button>
             </h2>
-            @foreach(var item in cuenta.Cuentas)
+            @foreach (var item in cuenta.Cuentas)
             {
                 <div id="@id" class="accordion-collapse collapse show">
                     <div class="accordion-body d-flex justify-content-between">
                         <p>
                             <a asp-action="TransaccionesDetallePorCuenta" asp-route-cuentaId="@item.Id" asp-controller="Transaccion">
-                            @item.Nombre
+                                @item.Nombre
                             </a>
                             <a asp-action="Editar" asp-route-id="@item.Id" class="text-primary"><i class="bi bi-pencil"></i></a>
                             <a asp-action="Borrar" asp-route-id="@item.Id" class="text-danger"><i class="bi bi-trash"></i></a>
                         </p>
-                        
+
                         <h4 class="@cuenta.AsignarClaseBalance(item.Balance)">@item.Balance</h4>
                     </div>
                 </div>
