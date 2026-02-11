@@ -1,23 +1,6 @@
 ﻿@model TransaccionesPorCuentaViewModel
 
 
-<section class="d-flex justify-content-between mb-3">
-    <div class="text-center">
-        <h4>Ingresos</h4>
-        <h5 class="activo">@Model.BalanceIngresos</h5>
-    </div>
-
-    <div class="text-center">
-        <h4>Gastos</h4>
-        <h5 class="pasivo">@Model.BalanceGastos</h5>
-    </div>
-
-    <div class="text-center">
-        <h4>Total</h4>
-        <h5>@Model.Total</h5>
-    </div>
-</section>
-
 @if (Model.TransaccionesAgrupadas.Count() <= 0 )
 {
     <h5>No hay transacciones disponibles.</h5>

@@ -1,28 +1,21 @@
-﻿@model TransaccionesPorCuentaViewModel
+﻿@using ManejoDePresupuestos.ViewModelPartials
+@model TransaccionesPorCuentaViewModel
 @{
     ViewData["Title"] = "Reporte Transacciones";
 }
 
-<h2 class="mb-3">
-    Reportes de transacciones
-</h2>
 
-<h3 class="mb-3">
+<h4 class="mb-3">
     Cuenta: @ViewBag.Cuenta
-</h3>
+</h4>
 
-<div class="mb-3 d-flex justify-content-between">
-    <div class="d-flex align-items-center gap-2">
-        <a asp-action="TransaccionesDetallePorCuenta" asp-route-cuentaId="@Model.CuentaId" asp-route-mes="@Model.MesAnterior" asp-route-año="@Model.AñoAnterior" class="btn btn-secondary"><i class="bi bi-chevron-left"></i></a>
-        <div style="width: 100px" class="text-center">
-            <strong>@Model.FechaInicio.ToString("MMM").ToUpper() - @Model.FechaInicio.Year</strong>
-        </div>
-        <a asp-action="TransaccionesDetallePorCuenta" asp-route-cuentaId="@Model.CuentaId" asp-route-mes="@Model.MesPosterior" asp-route-año="@Model.AñoPosterior" class="btn btn-secondary"><i class="bi bi-chevron-right"></i></a>
-    </div>
-    <a asp-action="Agregar" asp-route-urlRetorno="@Model.UrlRetorno" class="btn btn-primary">
-        Nueva transacción
-    </a>
-</div>
+<partial name="_BalanceTotales" model="@Model.Totales" />
+
+<partial name="_NavegacionFechas" model="@Model.Navegacion"/>
+
+<a asp-action="Agregar" asp-route-urlRetorno="@Model.UrlRetorno" class="btn btn-primary">
+    Nueva transacción
+</a>
 
 <hr />
 
