@@ -1,4 +1,6 @@
-﻿namespace ManejoDePresupuestos.Models
+﻿using ManejoDePresupuestos.ViewModelPartials;
+
+namespace ManejoDePresupuestos.Models
 {
     public class IndexCuentaViewModel
     {
