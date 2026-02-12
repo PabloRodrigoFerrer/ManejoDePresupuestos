@@ -2,6 +2,7 @@
 using ManejoDePresupuestos.Models;
 using Microsoft.Data.SqlClient;
 using System.Diagnostics;
+using System.Transactions;
 using static ManejoDePresupuestos.Servicios.RepositorioTransaccion;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 
@@ -14,6 +15,7 @@ namespace ManejoDePresupuestos.Servicios
         Task Editar(Transaccion transaccion, int cuentaAnteriorId, decimal montoAnterior);
         Task<Transaccion?> ObtenerPorId(int id, int usuarioId);
         Task<TransaccionEditarViewModel?> ObtenerPorIdConTipoOperacion(int id, int usuarioId);
+        Task<IEnumerable<ReporteMensualDTO>> ObtenerReporteMensual(int usuarioId, int año);
         Task<IEnumerable<TransaccionDetalleDTO>> ObtenerTransaccionesPorCuenta(int cuentaId, int usuarioId);
         Task<IEnumerable<TransaccionDetalleDTO>> ObtenerTransaccionesPorCuenta(int cuentaId, int usuarioId, DateTime fechaInicio, DateTime fechaFin);
         Task<IEnumerable<TransaccionDetalleDTO>> ObtenerTransaccionesPorUsuario(int usuarioId, DateTime fechaInicio, DateTime fechaFin);
@@ -187,6 +189,20 @@ namespace ManejoDePresupuestos.Servicios
             return await connection.QueryAsync<ReporteSemanalDTO>(query, new { usuarioId, fechaInicio, fechaFin });
         }
        
-    
+        public async Task<IEnumerable<ReporteMensualDTO>> ObtenerReporteMensual(int usuarioId, int año)
+        {
+            string query = @"select Month(trans.FechaTransaccion) as Mes,
+		                    Year(trans.FechaTransaccion) as Año,
+		                    Sum(case when cat.TipoOperacionId = 1 then trans.Monto end) as Ingresos,
+		                    Sum(case when cat.tipoOperacionId = 2 then trans.Monto end) as Gastos
+                            from Transacciones as trans
+                            inner join Categorias as cat
+                            on cat.Id = trans.CategoriaId
+                            where trans.UsuarioId = @usuarioId and Year(trans.FechaTransaccion) = @año
+                            group by Month(trans.FechaTransaccion),Year(trans.FechaTransaccion)";
+
+            using var connection = new SqlConnection(_connectionString);
+            return await connection.QueryAsync<ReporteMensualDTO>(query, new { usuarioId, año });
+        }
     }
 }

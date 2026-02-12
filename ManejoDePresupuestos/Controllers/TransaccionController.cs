@@ -206,16 +206,47 @@ namespace ManejoDePresupuestos.Controllers
             var model = new ReporteSemanalViewModel
             {
                 ReportesSemanales = TransaccionesSemanales.OrderByDescending(f => f.FechaInicioSemana),
-                Navegacion = new NavegacionFechasViewModel { FechaReferencia = fechaInicio, Accion = nameof(Semanal) }
+                Navegacion = new NavegacionPorMesesViewModel { FechaReferencia = fechaInicio, Accion = nameof(Semanal) }
             };
 
             return View(model);
         }
 
         //GET
-        public async Task<IActionResult> Mensual()
+        public async Task<IActionResult> Mensual(int año)
         {
-            return View();
+            int usuarioId = await _repositorioUsuario.ObtenerUsuarioId();
+            if (usuarioId == 0) return RedirectToAction("NoEncontrado", "Home");
+
+            año = año != 0 ? año : DateTime.Now.Year;
+
+            var model = new ReporteMensualViewModel
+            {
+                Navegacion = new NavegacionPorAñosViewModel
+                {
+                    FechaReferencia = new DateTime(año, 5, 1),
+                    Accion = nameof(Mensual)
+                }
+            };
+            var reportes = (await _repositorioTransaccion.ObtenerReporteMensual(usuarioId, año)).ToList();
+             
+            for (int mes = 1; mes <= 12; mes++)
+            {
+                var reporte = reportes.FirstOrDefault(r => r.Mes == mes);
+                if (reporte is null)
+                {
+                    reportes.Add(new ReporteMensualDTO
+                    {
+                        Mes = mes,
+                        Año = año,
+                        Ingresos = 0,
+                        Gastos = 0
+                    });
+                }
+            }
+
+            model.Reportes = reportes.OrderBy(r => r.Mes);
+            return View(model);
         }
 
 
@@ -253,7 +284,7 @@ namespace ManejoDePresupuestos.Controllers
             
             GenerarTransaccionesPorFecha(model, transacciones);
             model.UrlRetorno = HttpContext.Request.Path + HttpContext.Request.QueryString;
-            model.Navegacion = new NavegacionFechasViewModel
+            model.Navegacion = new NavegacionPorMesesViewModel
             {
                 Accion = nameof(TransaccionesDetallePorCuenta),
                 FechaReferencia = model.FechaInicio,
@@ -274,7 +305,7 @@ namespace ManejoDePresupuestos.Controllers
             GenerarTransaccionesPorFecha(model, transacciones);
             model.UrlRetorno = HttpContext.Request.Path + HttpContext.Request.QueryString;
 
-            model.Navegacion = new NavegacionFechasViewModel
+            model.Navegacion = new NavegacionPorMesesViewModel
             {
                 Accion = nameof(Index),
                 FechaReferencia = model.FechaInicio
