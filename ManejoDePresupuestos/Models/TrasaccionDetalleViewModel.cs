@@ -23,7 +23,7 @@ namespace ManejoDePresupuestos.Models
             Total = this.Total
         };
 
-        public NavegacionFechasViewModel? Navegacion { get;set;}
+        public NavegacionPorMesesViewModel? Navegacion { get;set;}
         public string AsignarClaseBalance(TipoOperacion operacion) => operacion is TipoOperacion.Ingreso ? "activo" : "pasivo";
     }
 

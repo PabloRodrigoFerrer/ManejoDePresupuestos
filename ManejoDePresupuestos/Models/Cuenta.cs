@@ -1,4 +1,6 @@
-﻿using ManejoDePresupuestos.Validaciones;
+﻿using Dapper;
+using ManejoDePresupuestos.Validaciones;
+using Microsoft.Data.SqlClient;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 
@@ -20,8 +22,6 @@ namespace ManejoDePresupuestos.Models
 
         [StringLength(1000, ErrorMessage = "El {0} no puede contener más de 1000 caracteres.")]
         public string Descripcion { get; set; } = string.Empty;
-
- 
 
     }
 }

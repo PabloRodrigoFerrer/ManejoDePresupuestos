@@ -18,7 +18,7 @@ namespace ManejoDePresupuestos.Models
             Total = TotalBalance
         };
 
-        public NavegacionFechasViewModel? Navegacion {get; set;} 
+        public NavegacionPorMesesViewModel? Navegacion {get; set;} 
        
     }
 }
