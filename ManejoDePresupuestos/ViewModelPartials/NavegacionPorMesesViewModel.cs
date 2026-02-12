@@ -2,7 +2,7 @@
 
 namespace ManejoDePresupuestos.ViewModelPartials
 {
-    public class NavegacionFechasViewModel
+    public class NavegacionPorMesesViewModel
     {
         public DateTime FechaReferencia { get; set; }
         public int MesAnterior => FechaReferencia.AddMonths(-1).Month;

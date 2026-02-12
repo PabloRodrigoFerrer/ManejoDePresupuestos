@@ -1,0 +1,39 @@
+﻿@using ManejoDePresupuestos.Enums
+@model ReporteMensualViewModel
+@{
+    ViewData["Title"] = "Reporte mensual";
+}
+
+<h5>Transacciones</h5>
+
+<partial name="_SubMenu" model="SubMenuTransacciones.Mensual" />
+
+<partial name="_NavegacionPorAños" model="@Model.Navegacion" />
+
+<partial name="_BalanceTotales" model="@Model.Totales" />
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Mes</th>
+            <th>Ingresos</th>
+            <th>Gastos</th>
+        </tr>
+    </thead>
+
+    <tbody>
+        @foreach (var item in Model.Reportes)
+        {
+            <tr>
+                <td>
+                    <a asp-action="Index" asp-route-mes="@item.Mes" asp-route-año="@item.Año">
+                        @item.FechaReferencia.ToString("MMM")
+                    </a>
+                </td>
+                <td class="activo">@item.Ingresos</td>
+                <td class="pasivo">@item.Gastos</td>
+            </tr>
+        }
+
+    </tbody>
+</table>
