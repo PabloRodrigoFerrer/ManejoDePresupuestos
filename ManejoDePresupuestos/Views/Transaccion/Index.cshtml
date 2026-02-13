@@ -9,12 +9,19 @@
 
 <partial name="_SubMenu" model="SubMenuTransacciones.Diario" />
 
-<partial name="_BalanceTotales" model="@Model.Totales"/>
+<partial name="_BalanceTotales" model="@Model.Totales" />
 
 <partial name="_NavegacionPorMeses" model="@Model.Navegacion" />
 
-<a asp-action="Agregar" asp-route-urlRetorno="@Model.UrlRetorno" class="btn btn-primary">
-    Nueva transacción
-</a>
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <a asp-action="Agregar" asp-route-urlRetorno="@Model.UrlRetorno" class="btn btn-primary">
+        Nueva transacción
+    </a>
+
+    <a asp-action="Excel" asp-route-mes="@Model.FechaInicio.Month" asp-route-año="@Model.FechaInicio.Year"
+       class="btn btn-success">
+        Descargar Excel
+    </a>
+</div>
 
 <partial name="_ReporteTransacciones" model="Model"></partial>

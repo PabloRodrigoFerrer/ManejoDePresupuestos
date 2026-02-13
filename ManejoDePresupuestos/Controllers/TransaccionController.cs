@@ -1,9 +1,11 @@
 ﻿using AutoMapper;
+using ClosedXML.Excel;
 using ManejoDePresupuestos.Models;
 using ManejoDePresupuestos.Servicios;
 using ManejoDePresupuestos.ViewModelPartials;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using System.Data;
 using System.Reflection;
 using System.Reflection.Metadata.Ecma335;
 using System.Threading.Tasks;
@@ -250,16 +252,65 @@ namespace ManejoDePresupuestos.Controllers
         }
 
 
-        //GET
-        public async Task<IActionResult> Excel()
+        //GET 
+        public async Task<FileResult> Excel(int mes, int año)
         {
-            return View();
+            int usuarioId = await _repositorioUsuario.ObtenerUsuarioId();
+
+            (DateTime fechaInicio, DateTime fechaFin) = ObtenerFechaInicioFin(mes, año);
+
+            var transacciones = await _repositorioTransaccion.ObtenerTransaccionesPorUsuario(usuarioId, fechaInicio, fechaFin);
+
+            var nombreArchivo = $"Manejo presupuesto - {fechaInicio.ToString("MMM yyyyy")}.xlsx";
+
+            var descargable = GenerarExcel(transacciones,nombreArchivo);
+            return descargable; 
         }
 
         //GET
         public async Task<IActionResult> Calendario()
         {
             return View();
+        }
+
+        private FileResult GenerarExcel(IEnumerable<TransaccionDetalleDTO> transacciones, string nombreArchivo)
+        {
+            var table = new DataTable();
+            
+            table.Columns.AddRange(new DataColumn[]
+            {
+                new DataColumn("Fecha"),
+                new DataColumn("Categoria"),
+                new DataColumn("Monto"),
+                new DataColumn("Ingreso/Gasto"),
+                new DataColumn("Nota")
+            });
+          
+            foreach (var transaccion in transacciones)
+            {
+                table.Rows.Add
+                (
+                    transaccion.FechaTransaccion,
+                    transaccion.Categoria,
+                    transaccion.Monto,
+                    transaccion.TipoOperacion,
+                    transaccion.Nota
+                );
+            }
+          
+            // generar archivo
+            using (XLWorkbook wb = new())
+            {
+                wb.Worksheets.Add(table, "sheet");
+                using (MemoryStream stream = new MemoryStream())
+                {
+                    wb.SaveAs(stream);
+                    return File(
+                        stream.ToArray(),
+                        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                        nombreArchivo);
+                }
+            }
         }
 
         private async Task<IEnumerable<SelectListItem>> ObtenerCategoriasParaSelect(int usuarioId, TipoOperacion tipoOperacionid)
